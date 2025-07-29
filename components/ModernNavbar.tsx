@@ -15,7 +15,7 @@ import {
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Heart, Video, Phone, User, LogOut, Menu, X } from "lucide-react"
+import { Heart, Video, Phone, User, LogOut, Menu, X, Calendar } from "lucide-react"
 import { ThemeToggle } from "@/components/ThemeToggle"
 
 
@@ -97,6 +97,12 @@ export function ModernNavbar() {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/appointments">
+                    <Calendar className="w-4 h-4 mr-2" />
+                      My Appointments 
+                    </Link>
+                  </DropdownMenuItem>
                   {user.role === "doctor" && (
                     <DropdownMenuItem asChild>
                       <Link href="/doctor/dashboard">
@@ -164,6 +170,13 @@ export function ModernNavbar() {
                   >
                     <User className="w-5 h-5" />
                     <span>Profile</span>
+                  </Link>
+                  <Link
+                    href="/appointments"
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+                  >
+                     <Calendar className="w-4 h-4 mr-2" />
+                    <span>My Appointments</span>
                   </Link>
                   <button
                     onClick={handleLogout}

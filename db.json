@@ -429,7 +429,7 @@
       "specialty": "Cardiology",
       "date": "2025-07-31",
       "time": "14:00",
-      "status": "confirmed",
+      "status": "completed",
       "consultationType": "clinic",
       "symptoms": "",
       "fee": 150
@@ -461,6 +461,20 @@
       "consultationType": "clinic",
       "symptoms": "",
       "fee": 180
+    },
+    {
+      "id": "1753780484677",
+      "doctorId": "2",
+      "patientId": "1",
+      "doctorName": "Dr. Michael Chen",
+      "patientName": "John Doe",
+      "specialty": "Dermatology",
+      "date": "2025-07-31",
+      "time": "09:00",
+      "status": "confirmed",
+      "consultationType": "clinic",
+      "symptoms": "",
+      "fee": 120
     }
   ]
 }

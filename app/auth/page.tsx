@@ -1,19 +1,25 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/AuthContext"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { authAPI } from "@/lib/api"
-import { useToast } from "@/hooks/use-toast"
-import { useTheme } from "next-themes"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { authAPI } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "next-themes";
 import {
   Heart,
   User,
@@ -28,7 +34,7 @@ import {
   EyeOff,
   Sun,
   Moon,
-} from "lucide-react"
+} from "lucide-react";
 
 // Reusable AuthForm Component
 const AuthForm = ({
@@ -55,9 +61,13 @@ const AuthForm = ({
           Medi<span className="text-blue-500">Care</span>
         </span>
       </div>
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-50 mb-2">{isLogin ? "Welcome Back!" : "Join MediCare"}</h1>
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-50 mb-2">
+        {isLogin ? "Welcome Back!" : "Join MediCare"}
+      </h1>
       <p className="text-gray-600 dark:text-gray-400">
-        {isLogin ? "Sign in to continue your health journey" : "Start your healthcare journey today"}
+        {isLogin
+          ? "Sign in to continue your health journey"
+          : "Start your healthcare journey today"}
       </p>
     </div>
 
@@ -67,24 +77,38 @@ const AuthForm = ({
         {/* Role Toggle */}
         <div className="flex items-center justify-center space-x-4 sm:space-x-6 mb-8 p-3 bg-gray-100 dark:bg-slate-800 rounded-2xl">
           <div
-            className={`flex items-center space-x-2 transition-all duration-300 ${!isDoctor ? "text-blue-500 scale-110" : "text-gray-500 dark:text-gray-400"}`}
+            className={`flex items-center space-x-2 transition-all duration-300 ${
+              !isDoctor
+                ? "text-blue-500 scale-110"
+                : "text-gray-500 dark:text-gray-400"
+            }`}
           >
             <User className="w-5 h-5" />
-            <Label htmlFor={`role-switch-${isMobile ? 'mobile' : 'desktop'}`} className="font-semibold cursor-pointer">
+            <Label
+              htmlFor={`role-switch-${isMobile ? "mobile" : "desktop"}`}
+              className="font-semibold cursor-pointer"
+            >
               Patient
             </Label>
           </div>
           <Switch
-            id={`role-switch-${isMobile ? 'mobile' : 'desktop'}`}
+            id={`role-switch-${isMobile ? "mobile" : "desktop"}`}
             checked={isDoctor}
             onCheckedChange={setIsDoctor}
             className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-blue-600"
           />
           <div
-            className={`flex items-center space-x-2 transition-all duration-300 ${isDoctor ? "text-purple-500 scale-110" : "text-gray-500 dark:text-gray-400"}`}
+            className={`flex items-center space-x-2 transition-all duration-300 ${
+              isDoctor
+                ? "text-purple-500 scale-110"
+                : "text-gray-500 dark:text-gray-400"
+            }`}
           >
             <Stethoscope className="w-5 h-5" />
-            <Label htmlFor={`role-switch-${isMobile ? 'mobile' : 'desktop'}`} className="font-semibold cursor-pointer">
+            <Label
+              htmlFor={`role-switch-${isMobile ? "mobile" : "desktop"}`}
+              className="font-semibold cursor-pointer"
+            >
               Doctor
             </Label>
           </div>
@@ -96,7 +120,9 @@ const AuthForm = ({
             type="button"
             onClick={() => setIsLogin(true)}
             className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
-              isLogin ? "bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-50 shadow-lg" : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700"
+              isLogin
+                ? "bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-50 shadow-lg"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700"
             }`}
           >
             Sign In
@@ -105,7 +131,9 @@ const AuthForm = ({
             type="button"
             onClick={() => setIsLogin(false)}
             className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
-              !isLogin ? "bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-50 shadow-lg" : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700"
+              !isLogin
+                ? "bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-50 shadow-lg"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700"
             }`}
           >
             Sign Up
@@ -115,11 +143,13 @@ const AuthForm = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
             <div className="animate-slideInLeft">
-              <Label htmlFor={`name-${isMobile ? 'mobile' : 'desktop'}`}>Full Name</Label>
+              <Label htmlFor={`name-${isMobile ? "mobile" : "desktop"}`}>
+                Full Name
+              </Label>
               <div className="relative mt-2">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
-                  id={`name-${isMobile ? 'mobile' : 'desktop'}`}
+                  id={`name-${isMobile ? "mobile" : "desktop"}`}
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
@@ -132,11 +162,13 @@ const AuthForm = ({
           )}
 
           <div className="animate-slideInLeft animation-delay-100">
-            <Label htmlFor={`email-${isMobile ? 'mobile' : 'desktop'}`}>Email Address</Label>
+            <Label htmlFor={`email-${isMobile ? "mobile" : "desktop"}`}>
+              Email Address
+            </Label>
             <div className="relative mt-2">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
-                id={`email-${isMobile ? 'mobile' : 'desktop'}`}
+                id={`email-${isMobile ? "mobile" : "desktop"}`}
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
@@ -149,11 +181,13 @@ const AuthForm = ({
 
           {!isLogin && (
             <div className="animate-slideInLeft animation-delay-200">
-              <Label htmlFor={`phone-${isMobile ? 'mobile' : 'desktop'}`}>Phone Number</Label>
+              <Label htmlFor={`phone-${isMobile ? "mobile" : "desktop"}`}>
+                Phone Number
+              </Label>
               <div className="relative mt-2">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
-                  id={`phone-${isMobile ? 'mobile' : 'desktop'}`}
+                  id={`phone-${isMobile ? "mobile" : "desktop"}`}
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
@@ -166,11 +200,13 @@ const AuthForm = ({
           )}
 
           <div className="animate-slideInLeft animation-delay-300">
-            <Label htmlFor={`password-${isMobile ? 'mobile' : 'desktop'}`}>Password</Label>
+            <Label htmlFor={`password-${isMobile ? "mobile" : "desktop"}`}>
+              Password
+            </Label>
             <div className="relative mt-2">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
-                id={`password-${isMobile ? 'mobile' : 'desktop'}`}
+                id={`password-${isMobile ? "mobile" : "desktop"}`}
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
@@ -184,7 +220,11 @@ const AuthForm = ({
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
@@ -210,37 +250,39 @@ const AuthForm = ({
                 <span>Please wait...</span>
               </div>
             ) : (
-              `${isLogin ? "Sign In" : "Create Account"} as ${isDoctor ? "Doctor" : "Patient"}`
+              `${isLogin ? "Sign In" : "Create Account"} as ${
+                isDoctor ? "Doctor" : "Patient"
+              }`
             )}
           </Button>
         </form>
       </CardContent>
     </Card>
   </div>
-)
+);
 
 const ThemeToggle = () => {
-    const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
-    return (
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="fixed top-6 right-6 z-50 bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm"
-        >
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-        </Button>
-    )
-}
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      className="fixed top-6 right-6 z-50 bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm"
+    >
+      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
+};
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [isDoctor, setIsDoctor] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const [isLogin, setIsLogin] = useState(true);
+  const [isDoctor, setIsDoctor] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -250,45 +292,67 @@ export default function AuthPage() {
     qualifications: "",
     experience: "",
     clinicAddress: "",
-  })
+  });
 
-  const { login } = useAuth()
-  const router = useRouter()
-  const { toast } = useToast()
+  const { login } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
     try {
       if (isLogin) {
-        const user = await authAPI.login(formData.email, formData.password, isDoctor ? "doctor" : "patient")
-        login(user)
-        router.push(isDoctor ? "/doctor/dashboard" : "/")
-        toast({ title: "Welcome back!", description: "You have been logged in successfully." })
+        const user = await authAPI.login(
+          formData.email,
+          formData.password,
+          isDoctor ? "doctor" : "patient"
+        );
+        login(user);
+        router.push(isDoctor ? "/doctor/dashboard" : "/");
+        toast({
+          title: "Welcome back!",
+          description: "You have been logged in successfully.",
+        });
       } else {
-        const user = await authAPI.signup(formData, isDoctor ? "doctor" : "patient")
-        login(user)
-        router.push(isDoctor ? "/doctor/dashboard" : "/")
-        toast({ title: "Account created!", description: "Your account has been created successfully." })
+        const user = await authAPI.signup(
+          formData,
+          isDoctor ? "doctor" : "patient"
+        );
+        login(user);
+        router.push(isDoctor ? "/doctor/dashboard" : "/");
+        toast({
+          title: "Account created!",
+          description: "Your account has been created successfully.",
+        });
       }
     } catch (error) {
       toast({
         title: "Authentication Error",
-        description: error instanceof Error ? error.message : "Authentication failed.",
+        description:
+          error instanceof Error ? error.message : "Authentication failed.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const formProps = {
-    isLogin, setIsLogin, isDoctor, setIsDoctor, formData, handleInputChange,
-    handleSubmit, isLoading, showPassword, setShowPassword
+    isLogin,
+    setIsLogin,
+    isDoctor,
+    setIsDoctor,
+    formData,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    showPassword,
+    setShowPassword,
   };
 
   return (
@@ -306,9 +370,12 @@ export default function AuthPage() {
                 Medi<span className="text-blue-500">Care</span>
               </span>
             </div>
-            <h2 className="text-4xl font-bold mb-6 text-gray-800 dark:text-gray-50">Welcome to MediCare</h2>
+            <h2 className="text-4xl font-bold mb-6 text-gray-800 dark:text-gray-50">
+              Welcome to MediCare
+            </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed">
-              Your trusted healthcare companion. Connect with qualified doctors and manage your health journey with ease.
+              Your trusted healthcare companion. Connect with qualified doctors
+              and manage your health journey with ease.
             </p>
           </div>
         </div>
@@ -323,5 +390,5 @@ export default function AuthPage() {
         <AuthForm {...formProps} isMobile />
       </div>
     </>
-  )
+  );
 }

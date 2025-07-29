@@ -1,56 +1,73 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useAuth } from "@/contexts/AuthContext"
-import { useSearchParams } from "next/navigation"
-import { ProtectedRoute } from "@/components/ProtectedRoute"
-import { ModernNavbar } from "@/components/ModernNavbar"
-import { ModernFooter } from "@/components/ModernFooter"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { doctorsAPI, type Doctor } from "@/lib/api"
-import { Search, MapPin, Star, Calendar, DollarSign, Video, Phone, Building } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSearchParams } from "next/navigation";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ModernNavbar } from "@/components/ModernNavbar";
+import { ModernFooter } from "@/components/ModernFooter";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { doctorsAPI, type Doctor } from "@/lib/api";
+import {
+  Search,
+  MapPin,
+  Star,
+  Calendar,
+  DollarSign,
+  Video,
+  Phone,
+  Building,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 export default function FindDoctorsPage() {
-  const { user } = useAuth()
-  const { toast } = useToast()
-  const searchParams = useSearchParams()
-  const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedSpecialty, setSelectedSpecialty] = useState(searchParams.get("specialty") || "all")
-  const [selectedLocation, setSelectedLocation] = useState("all")
-  const [sortBy, setSortBy] = useState("rating")
-  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState(
+    searchParams.get("specialty") || "all"
+  );
+  const [selectedLocation, setSelectedLocation] = useState("all");
+  const [sortBy, setSortBy] = useState("rating");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadDoctors()
-  }, [])
+    loadDoctors();
+  }, []);
 
   const loadDoctors = async () => {
     try {
-      const doctorsData = await doctorsAPI.getAll()
-      setDoctors(doctorsData)
-      setFilteredDoctors(doctorsData)
+      const doctorsData = await doctorsAPI.getAll();
+      setDoctors(doctorsData);
+      setFilteredDoctors(doctorsData);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to load doctors",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSearch = () => {
     // IMPROVEMENT: Use a shallow copy to prevent potential side effects
-    let filtered = [...doctors]
+    let filtered = [...doctors];
 
     // Search by name, specialty, or condition
     if (searchTerm) {
@@ -58,51 +75,56 @@ export default function FindDoctorsPage() {
         (doctor) =>
           doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doctor.about.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+          doctor.about.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     // Filter by specialty
     if (selectedSpecialty !== "all") {
-      filtered = filtered.filter((doctor) => doctor.specialty.toLowerCase() === selectedSpecialty.toLowerCase())
+      filtered = filtered.filter(
+        (doctor) =>
+          doctor.specialty.toLowerCase() === selectedSpecialty.toLowerCase()
+      );
     }
 
     // Filter by location
     if (selectedLocation !== "all") {
       filtered = filtered.filter((doctor) =>
-        doctor.clinicAddress.toLowerCase().includes(selectedLocation.toLowerCase()),
-      )
+        doctor.clinicAddress
+          .toLowerCase()
+          .includes(selectedLocation.toLowerCase())
+      );
     }
 
     // Sort results
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "rating":
-          return b.rating - a.rating
+          return b.rating - a.rating;
         case "experience":
-          return Number.parseInt(b.experience) - Number.parseInt(a.experience)
+          return Number.parseInt(b.experience) - Number.parseInt(a.experience);
         case "fee":
           // NOTE: This assumes 'consultationFee' is the primary fee for sorting.
           // For more complex scenarios, you might need to sort by specific fees (video, call, etc.).
-          return a.consultationFee - b.consultationFee
+          return a.consultationFee - b.consultationFee;
         case "name":
-          return a.name.localeCompare(b.name)
+          return a.name.localeCompare(b.name);
         default:
-          return 0
+          return 0;
       }
-    })
+    });
 
-    setFilteredDoctors(filtered)
-  }
+    setFilteredDoctors(filtered);
+  };
 
   useEffect(() => {
-    handleSearch()
-  }, [searchTerm, selectedSpecialty, selectedLocation, sortBy, doctors])
+    handleSearch();
+  }, [searchTerm, selectedSpecialty, selectedLocation, sortBy, doctors]);
 
   const getAvailableConsultationTypes = (doctor: Doctor) => {
     // This helper function is robust and provides a good default.
-    return doctor.consultationType || ["clinic"]
-  }
+    return doctor.consultationType || ["clinic"];
+  };
 
   return (
     <ProtectedRoute allowedRoles={["patient"]}>
@@ -114,9 +136,12 @@ export default function FindDoctorsPage() {
           {/* Header */}
           <div className="text-center mb-8">
             {/* CHANGED: Added dark mode text colors */}
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-50 mb-4">Find the Right Doctor</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50 mb-4">
+              Find the Right Doctor
+            </h1>
             <p className="text-gray-600 dark:text-gray-400 text-lg">
-              Search and book appointments with qualified healthcare professionals
+              Search and book appointments with qualified healthcare
+              professionals
             </p>
           </div>
 
@@ -133,7 +158,10 @@ export default function FindDoctorsPage() {
                   />
                 </div>
                 <div>
-                  <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                  <Select
+                    value={selectedSpecialty}
+                    onValueChange={setSelectedSpecialty}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Specialties" />
                     </SelectTrigger>
@@ -145,13 +173,18 @@ export default function FindDoctorsPage() {
                       <SelectItem value="orthopedics">Orthopedics</SelectItem>
                       <SelectItem value="pediatrics">Pediatrics</SelectItem>
                       <SelectItem value="psychiatry">Psychiatry</SelectItem>
-                      <SelectItem value="general medicine">General Medicine</SelectItem>
+                      <SelectItem value="general medicine">
+                        General Medicine
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   {/* NOTE: In a real app, these locations would be fetched from an API */}
-                  <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <Select
+                    value={selectedLocation}
+                    onValueChange={setSelectedLocation}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Locations" />
                     </SelectTrigger>
@@ -174,7 +207,9 @@ export default function FindDoctorsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="rating">Highest Rated</SelectItem>
-                      <SelectItem value="experience">Most Experienced</SelectItem>
+                      <SelectItem value="experience">
+                        Most Experienced
+                      </SelectItem>
                       <SelectItem value="fee">Lowest Fee</SelectItem>
                       <SelectItem value="name">Name A-Z</SelectItem>
                     </SelectContent>
@@ -190,14 +225,20 @@ export default function FindDoctorsPage() {
               {/* CHANGED: Added dark mode border color */}
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto"></div>
               {/* CHANGED: Added dark mode text color */}
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading doctors...</p>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">
+                Loading doctors...
+              </p>
             </div>
           ) : filteredDoctors.length === 0 ? (
             <Card className="text-center py-12">
               <CardContent>
                 <Search className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No doctors found</h3>
-                <p className="text-gray-600 dark:text-gray-400">Try adjusting your search criteria</p>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  No doctors found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Try adjusting your search criteria
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -205,33 +246,45 @@ export default function FindDoctorsPage() {
               <div className="mb-6">
                 {/* CHANGED: Added dark mode text color */}
                 <p className="text-gray-600 dark:text-gray-400">
-                  Found {filteredDoctors.length} doctor{filteredDoctors.length !== 1 ? "s" : ""}
+                  Found {filteredDoctors.length} doctor
+                  {filteredDoctors.length !== 1 ? "s" : ""}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredDoctors.map((doctor) => (
-                  <Card key={doctor.id} className="hover:shadow-lg transition-shadow">
+                  <Card
+                    key={doctor.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
                         <img
                           src={doctor.image || "/placeholder.svg"}
                           alt={doctor.name}
-                          className="w-20 h-20 rounded-full object-cover"
+                          className="w-20 h-20 rounded-full object-cover flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                            <div className="min-w-0 flex-1">
                               {/* CHANGED: Added dark mode text colors */}
-                              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{doctor.name}</h3>
-                              <p className="text-blue-600 dark:text-blue-400 font-medium">{doctor.specialty}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{doctor.qualifications}</p>
+                              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                {doctor.name}
+                              </h3>
+                              <p className="text-blue-600 dark:text-blue-400 font-medium">
+                                {doctor.specialty}
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {doctor.qualifications}
+                              </p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-left sm:text-right mt-2 sm:mt-0 flex-shrink-0">
                               <div className="flex items-center">
                                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
                                 {/* CHANGED: Added dark mode text colors */}
-                                <span className="ml-1 text-sm font-medium dark:text-gray-200">{doctor.rating}</span>
+                                <span className="ml-1 text-sm font-medium dark:text-gray-200">
+                                  {doctor.rating}
+                                </span>
                                 <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">
                                   ({doctor.reviewCount})
                                 </span>
@@ -246,8 +299,10 @@ export default function FindDoctorsPage() {
                               {doctor.experience} years experience
                             </div>
                             <div className="flex items-center text-sm">
-                              <MapPin className="w-4 h-4 mr-2" />
-                              {doctor.clinicAddress.split(",")[0]}
+                              <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                              <span className="truncate sm:whitespace-normal">
+                                {doctor.clinicAddress.split(",")[0]}
+                              </span>
                             </div>
                             <div className="flex items-center text-sm">
                               <DollarSign className="w-4 h-4 mr-2" />
@@ -256,23 +311,41 @@ export default function FindDoctorsPage() {
                           </div>
 
                           <div className="mt-4">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{doctor.about}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                              {doctor.about}
+                            </p>
                           </div>
 
-                          <div className="mt-4 flex items-center justify-between">
-                            <div className="flex flex-wrap gap-2">
+                          <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center sm:justify-end gap-3 sm:gap-4">
+                            <div className="flex flex-wrap gap-2 min-w-0 sm:mr-auto">
                               {/* This dynamic badge rendering is a great feature */}
-                              {getAvailableConsultationTypes(doctor).map((type) => (
-                                <Badge key={type} variant="secondary" className="text-xs">
-                                  {type === "clinic" && <Building className="w-3 h-3 mr-1" />}
-                                  {type === "video" && <Video className="w-3 h-3 mr-1" />}
-                                  {type === "call" && <Phone className="w-3 h-3 mr-1" />}
-                                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                                </Badge>
-                              ))}
+                              {getAvailableConsultationTypes(doctor).map(
+                                (type) => (
+                                  <Badge
+                                    key={type}
+                                    variant="secondary"
+                                    className="text-xs flex-shrink-0"
+                                  >
+                                    {type === "clinic" && (
+                                      <Building className="w-3 h-3 mr-1" />
+                                    )}
+                                    {type === "video" && (
+                                      <Video className="w-3 h-3 mr-1" />
+                                    )}
+                                    {type === "call" && (
+                                      <Phone className="w-3 h-3 mr-1" />
+                                    )}
+                                    {type.charAt(0).toUpperCase() +
+                                      type.slice(1)}
+                                  </Badge>
+                                )
+                              )}
                             </div>
-                            <Link href={`/doctor/${doctor.id}`}>
-                              <Button>View Profile</Button>
+                            <Link
+                              href={`/doctor/${doctor.id}`}
+                              className="w-full sm:w-auto flex-shrink-0"
+                            >
+                              <Button className="w-full">View Profile</Button>
                             </Link>
                           </div>
                         </div>
@@ -288,5 +361,5 @@ export default function FindDoctorsPage() {
         <ModernFooter />
       </div>
     </ProtectedRoute>
-  )
+  );
 }

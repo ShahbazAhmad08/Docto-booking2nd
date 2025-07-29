@@ -1,24 +1,44 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useAuth } from "@/contexts/AuthContext"
-import { ProtectedRoute } from "@/components/ProtectedRoute"
-import { Navbar } from "@/components/Navbar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { User, Phone, Mail, Stethoscope, GraduationCap, MapPin, Clock } from "lucide-react"
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Navbar } from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import {
+  User,
+  Phone,
+  Mail,
+  Stethoscope,
+  GraduationCap,
+  MapPin,
+  Clock,
+} from "lucide-react";
 
 export default function DoctorProfilePage() {
-  const { user, updateUser } = useAuth()
-  const { toast } = useToast()
-  const [isEditing, setIsEditing] = useState(false)
+  const { user, updateUser } = useAuth();
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -27,31 +47,31 @@ export default function DoctorProfilePage() {
     qualifications: user?.qualifications || "",
     experience: user?.experience || "",
     clinicAddress: user?.clinicAddress || "",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       // In a real app, this would be an API call
-      await updateUser(formData)
-      setIsEditing(false)
+      await updateUser(formData);
+      setIsEditing(false);
       toast({
         title: "Success",
         description: "Profile updated successfully!",
-      })
+      });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update profile",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <ProtectedRoute allowedRoles={["doctor"]}>
@@ -59,11 +79,14 @@ export default function DoctorProfilePage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center mb-8">
-            {/* CHANGED: Added dual-theme text */}
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Doctor Profile</h1>
-            <p className="text-gray-600 dark:text-gray-300">Manage your professional information</p>
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-8 py-8 overflow-x-auto">
+          <div className="text-center mb-8 px-2 sm:px-0">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 break-words">
+              Doctor Profile
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
+              Manage your professional information
+            </p>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -77,14 +100,18 @@ export default function DoctorProfilePage() {
                     </CardTitle>
                     <CardDescription>Update your basic details</CardDescription>
                   </div>
-                  <Button type="button" variant="outline" onClick={() => setIsEditing(!isEditing)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
                     {isEditing ? "Cancel" : "Edit"}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-y-6">
                     <div>
                       <Label htmlFor="name">Full Name</Label>
                       <div className="relative">
@@ -93,7 +120,9 @@ export default function DoctorProfilePage() {
                           id="name"
                           type="text"
                           value={formData.name}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("name", e.target.value)
+                          }
                           disabled={!isEditing}
                           className="pl-10"
                           required
@@ -109,7 +138,9 @@ export default function DoctorProfilePage() {
                           id="phone"
                           type="tel"
                           value={formData.phone}
-                          onChange={(e) => handleInputChange("phone", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("phone", e.target.value)
+                          }
                           disabled={!isEditing}
                           className="pl-10"
                           required
@@ -126,7 +157,9 @@ export default function DoctorProfilePage() {
                         id="email"
                         type="email"
                         value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("email", e.target.value)
+                        }
                         disabled={!isEditing}
                         className="pl-10"
                         required
@@ -144,11 +177,13 @@ export default function DoctorProfilePage() {
                   <Stethoscope className="w-6 h-6 mr-2" />
                   Professional Information
                 </CardTitle>
-                <CardDescription>Your medical credentials and practice details</CardDescription>
+                <CardDescription>
+                  Your medical credentials and practice details
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-y-6">
                     <div>
                       <Label htmlFor="specialty">Specialty</Label>
                       <div className="relative">
@@ -156,24 +191,44 @@ export default function DoctorProfilePage() {
                         {isEditing ? (
                           <Select
                             value={formData.specialty}
-                            onValueChange={(value) => handleInputChange("specialty", value)}
+                            onValueChange={(value) =>
+                              handleInputChange("specialty", value)
+                            }
                           >
                             <SelectTrigger className="pl-10">
                               <SelectValue placeholder="Select specialty" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="cardiology">Cardiology</SelectItem>
-                              <SelectItem value="dermatology">Dermatology</SelectItem>
-                              <SelectItem value="neurology">Neurology</SelectItem>
-                              <SelectItem value="orthopedics">Orthopedics</SelectItem>
-                              <SelectItem value="pediatrics">Pediatrics</SelectItem>
-                              <SelectItem value="psychiatry">Psychiatry</SelectItem>
+                              <SelectItem value="cardiology">
+                                Cardiology
+                              </SelectItem>
+                              <SelectItem value="dermatology">
+                                Dermatology
+                              </SelectItem>
+                              <SelectItem value="neurology">
+                                Neurology
+                              </SelectItem>
+                              <SelectItem value="orthopedics">
+                                Orthopedics
+                              </SelectItem>
+                              <SelectItem value="pediatrics">
+                                Pediatrics
+                              </SelectItem>
+                              <SelectItem value="psychiatry">
+                                Psychiatry
+                              </SelectItem>
                               {/* FIXED: Consistent value for General Medicine */}
-                              <SelectItem value="general medicine">General Medicine</SelectItem>
+                              <SelectItem value="general medicine">
+                                General Medicine
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
-                          <Input value={formData.specialty} disabled className="pl-10 capitalize" />
+                          <Input
+                            value={formData.specialty}
+                            disabled
+                            className="pl-10 capitalize"
+                          />
                         )}
                       </div>
                     </div>
@@ -186,7 +241,9 @@ export default function DoctorProfilePage() {
                           id="experience"
                           type="text"
                           value={formData.experience}
-                          onChange={(e) => handleInputChange("experience", e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("experience", e.target.value)
+                          }
                           disabled={!isEditing}
                           className="pl-10"
                           placeholder="e.g., 5 years"
@@ -204,7 +261,9 @@ export default function DoctorProfilePage() {
                         id="qualifications"
                         type="text"
                         value={formData.qualifications}
-                        onChange={(e) => handleInputChange("qualifications", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("qualifications", e.target.value)
+                        }
                         disabled={!isEditing}
                         className="pl-10"
                         placeholder="e.g., MD, MBBS, Specialist"
@@ -220,7 +279,9 @@ export default function DoctorProfilePage() {
                       <Textarea
                         id="clinicAddress"
                         value={formData.clinicAddress}
-                        onChange={(e) => handleInputChange("clinicAddress", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("clinicAddress", e.target.value)
+                        }
                         disabled={!isEditing}
                         className="pl-10 min-h-[80px]"
                         placeholder="Enter your clinic address"
@@ -233,16 +294,23 @@ export default function DoctorProfilePage() {
             </Card>
 
             {isEditing && (
-              <div className="flex justify-end space-x-4 mt-6">
-                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4 mt-6 w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditing(false)}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" className="w-full sm:w-auto ">
+                  Save Changes
+                </Button>
               </div>
             )}
           </form>
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

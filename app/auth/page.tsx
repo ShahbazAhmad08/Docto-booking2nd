@@ -37,6 +37,20 @@ import {
 } from "lucide-react";
 
 // Reusable AuthForm Component
+interface AuthFormProps {
+  isLogin: boolean;
+  setIsLogin: (val: boolean) => void;
+  isDoctor: boolean;
+  setIsDoctor: (val: boolean) => void;
+  formData: any;
+  handleInputChange: (field: string, value: string) => void;
+  handleSubmit: (e: React.FormEvent) => void;
+  isLoading: boolean;
+  showPassword: boolean;
+  setShowPassword: (val: boolean) => void;
+  isMobile?: boolean;
+}
+
 const AuthForm = ({
   isLogin,
   setIsLogin,
@@ -49,7 +63,7 @@ const AuthForm = ({
   showPassword,
   setShowPassword,
   isMobile = false,
-}) => (
+}: AuthFormProps) => (
   <div className="relative z-10 w-full max-w-md">
     {/* Header */}
     <div className="text-center mb-8 animate-fadeInUp">
@@ -359,7 +373,30 @@ export default function AuthPage() {
     <>
       <ThemeToggle />
       {/* Desktop Layout - Split Screen */}
-      <div className="hidden lg:flex min-h-screen bg-white dark:bg-slate-900">
+      <div className="hidden lg:flex min-h-screen bg-white dark:bg-slate-900 relative">
+        {/* Back Home Button Desktop */}
+        <Button
+          onClick={() => (window.location.href = "/")}
+          className="absolute top-8 left-8 z-40 px-2 py-0.5 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-semibold text-base shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 ease-in-out flex items-center gap-2"
+        >
+          {/* Left Arrow Icon */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Back
+        </Button>
+
         <div className="flex-1 flex items-start justify-center pt-32 p-12 relative overflow-hidden">
           <div className="relative z-10 text-center animate-fadeInUp">
             <div className="flex items-center justify-center space-x-3 mb-8">
@@ -380,13 +417,38 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <div className="flex-1 bg-white dark:bg-slate-900 flex items-center justify-center p-12 relative overflow-hidden">
+        <div className="flex-1 bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-12 relative overflow-hidden">
           <AuthForm {...formProps} />
         </div>
       </div>
 
       {/* Mobile Layout - Full Experience */}
-      <div className="lg:hidden min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="lg:hidden min-h-screen bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {/* Back Home Button Mobile */}
+        <Button
+          onClick={() => (window.location.href = "/")}
+          className="absolute top-6 left-3 z-50 px-3 py-1 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-bold text-base shadow-lg hover:scale-105 transition-transform duration-200 flex items-center gap-2"
+        >
+          {/* Left Arrow Icon */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+
+          {/* Text only on desktop */}
+          <span className="hidden md:inline">Back Home</span>
+        </Button>
+
         <AuthForm {...formProps} isMobile />
       </div>
     </>

@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3001"
+const API_BASE = "https://doctor-appointment-api-1.onrender.com"
 // const API_BASE = "https://m4pc9y-3001.csb.app";//used for sandbox
 
 export interface Doctor {

@@ -42,7 +42,7 @@ export default function HomePage() {
   useEffect(() => {
     // This logic correctly handles routing for non-patients.
     if (!user) {
-      // Show landing page content for logged-out users, no redirect needed here.
+      router.replace("/");
     } else if (user.role === "doctor") {
       router.push("/doctor/dashboard");
       return;
@@ -108,7 +108,7 @@ export default function HomePage() {
   if (!user || user.role !== "patient") {
     return (
       // CHANGED: Use a consistent background color from your theme
-      <div className="bg-white dark:bg-gray-950 min-h-screen">
+      <div className="bg-white dark:bg-gray-950">
         <ModernNavbar />
         <HeroSection />
         <SpecialtySlider

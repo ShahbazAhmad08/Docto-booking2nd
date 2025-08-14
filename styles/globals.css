@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -132,4 +133,32 @@
 
 .animation-delay-500 {
   animation-delay: 0.5s;
+}
+
+
+.fc-event,
+.fc-daygrid-event,
+.fc-timegrid-event {
+  overflow: visible !important;
+  z-index: 9999 !important;
+}
+
+.fc {
+  overflow: visible !important;
+}
+.fc-view-harness {
+  overflow: visible !important;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .prescription-card {
+    box-shadow: none !important;
+    border: none !important;
+  }
 }

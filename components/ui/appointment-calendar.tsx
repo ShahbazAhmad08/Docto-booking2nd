@@ -1,13 +1,14 @@
 // components/ui/appointment-calendar.tsx
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction"; // For clickable events
+import interactionPlugin from "@fullcalendar/interaction";
 import { useToast } from "@/hooks/use-toast";
 import { appointmentsAPI, type Appointment } from "@/lib/api";
+
 interface AppointmentCalendarProps {
   appointments: Appointment[];
   onAppointmentUpdate: (updatedAppointment: Appointment) => void;
@@ -26,347 +27,208 @@ export function AppointmentCalendar({
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
 
-  const events = appointments.map((appointment) => ({
-    id: appointment.id,
-    start: `${appointment.date}T${appointment.time}`,
-    extendedProps: {
-      status: appointment.status,
-      patientName: appointment.patientName,
-      specialty: appointment.specialty,
-      time: appointment.time,
-    },
+  const events = appointments.map((a) => ({
+    id: a.id,
+    start: `${a.date}T${a.time}`,
+    extendedProps: { ...a },
   }));
 
-  function getEventClasses(status: string) {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "cancelled":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      case "completed":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "rescheduled":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
-    }
-  }
+  const getEventClasses = (status: string) => {
+    const base = "rounded-md px-1 py-0.5 text-xs";
+    return (
+      {
+        confirmed: `${base} bg-green-500 text-white`,
+        pending: `${base} bg-yellow-400 text-black`,
+        cancelled: `${base} bg-red-500 text-white`,
+        completed: `${base} bg-blue-500 text-white`,
+        rescheduled: `${base} bg-purple-500 text-white`,
+      }[status] || `${base} bg-gray-300 text-black`
+    );
+  };
 
-  const handleEventClick = (clickInfo: any) => {
-    const clickedAppointment: Appointment = {
-      id: clickInfo.event.id,
-      date: clickInfo.event.startStr.split("T")[0],
-      time: clickInfo.event.extendedProps.time,
-      patientName: clickInfo.event.extendedProps.patientName,
-      specialty: clickInfo.event.extendedProps.specialty,
-      status: clickInfo.event.extendedProps.status,
-    };
-
-    setSelectedAppointment(clickedAppointment);
+  const handleEventClick = (info: any) => {
+    setSelectedAppointment(info.event.extendedProps as Appointment);
     setIsModalOpen(true);
   };
-  // Add a new function to handle dropping an event
-  const handleEventDrop = async (info: any) => {
-    const { event, oldEvent } = info;
-    const newStart = event.startStr.split("T");
-    const newDate = newStart[0];
-    const newTime = newStart[1]
-      ? newStart[1].substring(0, 5)
-      : event.extendedProps.time;
 
+  const handleEventDrop = async (info: any) => {
+    const newDate = info.event.startStr.split("T")[0];
+    const newTime = info.event.startStr.split("T")[1]?.substring(0, 5);
     try {
-      console.log("Attempting to reschedule appointment:", event.id);
-      const updatedAppointment = await appointmentsAPI.updateSchedule(
-        event.id,
+      const updated = await appointmentsAPI.updateSchedule(
+        info.event.id,
         newDate,
         newTime
       );
-      console.log(
-        "API call successful. Updated appointment:",
-        updatedAppointment
-      );
-
-      // After a successful API call, update the parent state
-      onAppointmentUpdate({
-        ...event.extendedProps,
-        id: updatedAppointment.id,
-        date: updatedAppointment.date,
-        time: updatedAppointment.time,
-        status: updatedAppointment.status,
-      });
-
+      onAppointmentUpdate({ ...updated });
       toast({
         title: "Appointment Rescheduled",
-        description: `Appointment for ${event.extendedProps.patientName} was moved to ${newDate} at ${newTime}.`,
+        description: `${updated.patientName} moved to ${newDate} at ${newTime}.`,
       });
-    } catch (error) {
-      console.error("API call failed:", error); // <-- This will show you the exact error
+    } catch (e) {
       info.revert();
       toast({
-        title: "Reschedule Failed",
-        description: "An error occurred while rescheduling the appointment.",
+        title: "Error",
+        description: "Failed to reschedule.",
         variant: "destructive",
       });
     }
   };
-  const handleEventMount = (info: any) => {
-    const { patientName, specialty, time, status } = info.event.extendedProps;
-    const appointmentId = info.event.id;
 
-    const tooltip = document.createElement("div");
-    tooltip.className = "custom-tooltip-enhanced";
-    tooltip.innerHTML = `
-      <div class="tooltip-header">
-        <div class="tooltip-title">Appointment Details</div>
-      </div>
-      <div class="tooltip-body">
-        <div class="tooltip-row">
-          <span class="tooltip-label">Patient:</span>
-          <span class="tooltip-value">${patientName}</span>
-        </div>
-        <div class="tooltip-row">
-          <span class="tooltip-label">Specialty:</span>
-          <span class="tooltip-value">${specialty}</span>
-        </div>
-        <div class="tooltip-row">
-          <span class="tooltip-label">Time:</span>
-          <span class="tooltip-value">${time}</span>
-        </div>
-        <div class="tooltip-row">
-          <span class="tooltip-label">Status:</span>
-          <span class="tooltip-value tooltip-status tooltip-status-${status}">${status}</span>
-        </div>
-        <div class="tooltip-row">
-          <span class="tooltip-label">ID:</span>
-          <span class="tooltip-value tooltip-id">${appointmentId}</span>
-        </div>
-      </div>
-    `;
-
-    // Add a mouseover listener to display the tooltip
-    info.el.addEventListener("mouseover", () => {
-      document.body.appendChild(tooltip);
-      const rect = info.el.getBoundingClientRect();
-      tooltip.style.left = `${rect.left + window.scrollX}px`;
-      tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    });
-
-    // Add a mouseout listener to remove the tooltip
-    info.el.addEventListener("mouseout", () => {
-      if (document.body.contains(tooltip)) {
-        document.body.removeChild(tooltip);
-      }
-    });
-  };
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 max-w-6xl mx-auto">
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        weekends={true}
-        events={events}
-        eventClick={handleEventClick}
+        initialView="timeGridWeek"
         headerToolbar={{
           left: "prev,next today",
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay",
         }}
+        height="650px"
+        slotMinTime="08:00:00"
+        slotMaxTime="23:00:00"
+        events={events}
         editable={true}
         eventDrop={handleEventDrop}
-        eventDidMount={handleEventMount}
+        eventClick={handleEventClick}
         eventContent={(arg) => {
           const { patientName, specialty, status, time } =
             arg.event.extendedProps;
-          const statusClass = getEventClasses(status); // Use the new function
+          const statusClass = getEventClasses(status);
 
           return (
             <div
-              className={`flex flex-col rounded-md p-1 truncate text-xs cursor-pointer overflow-hidden ${statusClass}`}
+              className={`relative group cursor-pointer truncate ${statusClass}`}
             >
+              {/* Event text */}
               <div className="font-semibold">
                 {time} - {patientName}
               </div>
-              <div className="text-gray-600 dark:text-gray-300 text-[10px] truncate">
-                {specialty}
-                <span className="ml-1 capitalize text-[9px] font-medium opacity-80">
-                  ({status})
-                </span>
+
+              {/* ✅ Tailwind Tooltip */}
+              <div
+                className="absolute top-full left-1/2 mt-2 -translate-x-1/2 w-52 
+                   bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg 
+                   opacity-0 group-hover:opacity-100 group-hover:translate-y-1 
+                   transition-all duration-200 z-[99999] pointer-events-none"
+              >
+                <div className="absolute left-1/2 -top-1 w-2 h-2 bg-gray-900 rotate-45 -translate-x-1/2"></div>
+                <p className="font-bold">{patientName}</p>
+                <p className="text-gray-300">{specialty}</p>
+                <p>{time}</p>
+                <p className="capitalize text-purple-400">{status}</p>
               </div>
             </div>
           );
         }}
       />
-      {isModalOpen && selectedAppointment && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="bg-white dark:bg-gray-700 rounded-lg shadow-xl p-6 w-full max-w-md">
-              <h3 className="text-xl font-bold mb-4">Appointment Details</h3>
-              <div className="space-y-2">
-                <p>
-                  <b>Patient:</b> {selectedAppointment.patientName}
-                </p>
-                <p>
-                  <b>Specialty:</b> {selectedAppointment.specialty}
-                </p>
-                <p>
-                  <b>Date:</b> {selectedAppointment.date}
-                </p>
-                <p>
-                  <b>Time:</b> {selectedAppointment.time}
-                </p>
-                <p>
-                  <b>Status:</b> {selectedAppointment.status}
-                </p>
-              </div>
 
-              <div className="mt-6 flex justify-end space-x-2">
-                {/* Reschedule Button Placeholder */}
+      {/* ✅ Details Modal */}
+      {isModalOpen && selectedAppointment && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50">
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl w-96">
+            <h2 className="text-xl font-bold mb-3">Appointment Details</h2>
+            <p>
+              <b>Patient:</b> {selectedAppointment.patientName}
+            </p>
+            <p>
+              <b>Specialty:</b> {selectedAppointment.specialty}
+            </p>
+            <p>
+              <b>Date:</b> {selectedAppointment.date}
+            </p>
+            <p>
+              <b>Time:</b> {selectedAppointment.time}
+            </p>
+            <p>
+              <b>Status:</b> {selectedAppointment.status}
+            </p>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setIsRescheduleModalOpen(true);
+                  setIsModalOpen(false);
+                }}
+                className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+              >
+                Reschedule
+              </button>
+              {selectedAppointment.status !== "cancelled" && (
                 <button
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-                  onClick={() => {
-                    setIsRescheduleModalOpen(true);
+                  onClick={async () => {
+                    const updated = await appointmentsAPI.updateStatus(
+                      selectedAppointment.id,
+                      "cancelled"
+                    );
+                    onAppointmentUpdate({ ...updated });
+                    toast({
+                      title: "Cancelled",
+                      description: `${updated.patientName}'s appointment was cancelled.`,
+                    });
                     setIsModalOpen(false);
                   }}
+                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
                 >
-                  Reschedule
+                  Cancel
                 </button>
-
-                {/* Cancel Button */}
-                {selectedAppointment.status !== "cancelled" &&
-                  selectedAppointment.status !== "completed" && (
-                    <button
-                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-                      onClick={async () => {
-                        if (selectedAppointment) {
-                          try {
-                            const updatedAppointment =
-                              await appointmentsAPI.updateStatus(
-                                selectedAppointment.id,
-                                "cancelled"
-                              );
-                            onAppointmentUpdate({
-                              ...selectedAppointment,
-                              status: updatedAppointment.status,
-                            });
-
-                            toast({
-                              title: "Appointment Cancelled",
-                              description: `Appointment for ${selectedAppointment.patientName} has been cancelled.`,
-                            });
-
-                            setIsModalOpen(false);
-                          } catch (error) {
-                            console.error("Cancellation failed:", error);
-                            toast({
-                              title: "Cancellation Failed",
-                              description:
-                                "An error occurred while cancelling the appointment.",
-                              variant: "destructive",
-                            });
-                          }
-                        }
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  )}
-
-                <button
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Close
-                </button>
-              </div>
+              )}
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-gray-300 px-3 py-1 rounded"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* ✅ Reschedule Modal */}
       {isRescheduleModalOpen && selectedAppointment && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="bg-white dark:bg-gray-700 rounded-lg shadow-xl p-6 w-full max-w-md">
-              <h3 className="text-xl font-bold mb-4">Reschedule Appointment</h3>
-              <div className="space-y-4">
-                <p>
-                  Rescheduling appointment for{" "}
-                  <b>{selectedAppointment.patientName}</b>.
-                </p>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    New Date
-                  </label>
-                  <input
-                    type="date"
-                    value={newDate}
-                    onChange={(e) => setNewDate(e.target.value)}
-                    className="w-full p-2 border rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    New Time
-                  </label>
-                  <input
-                    type="time"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    className="w-full p-2 border rounded-md"
-                  />
-                </div>
-              </div>
-              <div className="mt-6 flex justify-end space-x-2">
-                <button
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-                  onClick={async () => {
-                    if (selectedAppointment && newDate && newTime) {
-                      try {
-                        const updatedAppointment =
-                          await appointmentsAPI.updateSchedule(
-                            selectedAppointment.id,
-                            newDate,
-                            newTime
-                          );
-                        onAppointmentUpdate({
-                          ...selectedAppointment,
-                          date: updatedAppointment.date,
-                          time: updatedAppointment.time,
-                          status: updatedAppointment.status,
-                        });
-                        toast({
-                          title: "Appointment Rescheduled",
-                          description: `Appointment for ${updatedAppointment.patientName} was moved to ${updatedAppointment.date} at ${updatedAppointment.time}.`,
-                        });
-                        setIsRescheduleModalOpen(false); // Close this modal
-                        setIsModalOpen(false); // Close the first modal
-                      } catch (error) {
-                        toast({
-                          title: "Reschedule Failed",
-                          description: "An error occurred while rescheduling.",
-                          variant: "destructive",
-                        });
-                      }
-                    } else {
-                      toast({
-                        title: "Error",
-                        description: "Please select a new date and time.",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                >
-                  Confirm Reschedule
-                </button>
-                <button
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
-                  onClick={() => setIsRescheduleModalOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50">
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl w-96">
+            <h2 className="text-lg font-bold mb-3">Reschedule Appointment</h2>
+            <input
+              type="date"
+              className="border p-2 w-full mb-2"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+            />
+            <input
+              type="time"
+              className="border p-2 w-full mb-3"
+              value={newTime}
+              onChange={(e) => setNewTime(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsRescheduleModalOpen(false)}
+                className="bg-gray-300 px-3 py-1 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const updated = await appointmentsAPI.updateSchedule(
+                    selectedAppointment.id,
+                    newDate,
+                    newTime
+                  );
+                  onAppointmentUpdate({ ...updated });
+                  toast({
+                    title: "Rescheduled",
+                    description: `Moved to ${updated.date} at ${updated.time}`,
+                  });
+                  setIsRescheduleModalOpen(false);
+                }}
+                className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>

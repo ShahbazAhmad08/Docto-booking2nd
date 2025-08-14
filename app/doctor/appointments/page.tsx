@@ -1,10 +1,9 @@
-// app/doctor/appointments/page.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react"; // Added useCallback
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,86 +13,89 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { appointmentsAPI, type Appointment } from "@/lib/api";
+import {
+  appointmentsAPI,
+  type Appointment,
+  prescriptionsAPI,
+  type Prescription,
+} from "@/lib/api";
 import {
   Calendar,
   Clock,
   User,
-  CheckCircle,
-  XCircle,
-  CalendarDays, // Added for calendar toggle
-  ListOrdered, // Added for list toggle
+  CalendarDays,
+  ListOrdered,
+  StepBack,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { AppointmentCalendar } from "@/components/ui/appointment-calendar"; // Added: Now exists manually
-import { ModernFooter } from "@/components/ModernFooter"; // Added ModernFooter
-import { Skeleton } from "@/components/ui/skeleton"; // For loading state
+import { AppointmentCalendar } from "@/components/ui/appointment-calendar";
+import { ModernFooter } from "@/components/ModernFooter";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DoctorAppointmentsPage() {
-  const { user, role, isAuthenticated } = useAuth(); // Added role, isAuthenticated for robust checks
+  const { user, role, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  console.log("Auth State:", { user, role, isAuthenticated });
+  const router = useRouter();
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming"); // State for active tab filtering
-  const [isCalendarView, setIsCalendarView] = useState(false); // State to toggle between list and calendar view
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
+  const [isCalendarView, setIsCalendarView] = useState(false);
 
-  // Memoized function to load appointments
+  // ---------------- Load Appointments & Prescriptions ----------------
   const loadAppointments = useCallback(async () => {
-    const idToFetch = user?.id;
-
-    // Only proceed if authenticated and a doctor
-    if (!isAuthenticated || !idToFetch || role !== "doctor") {
+    if (!isAuthenticated || !user?.id || role !== "doctor") {
       setIsLoading(false);
       return;
     }
-
     try {
-      const appointmentsData = await appointmentsAPI.getByDoctorId(idToFetch);
+      const [apts, prescs] = await Promise.all([
+        appointmentsAPI.getByDoctorId(user.id),
+        prescriptionsAPI.getByDoctorId(user.id),
+      ]);
+
       setAppointments(
-        appointmentsData.sort(
-          // Retaining your original ascending sort order (oldest first)
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        apts.sort(
+          (a: any, b: any) =>
+            new Date(a.date).getTime() - new Date(b.date).getTime()
         )
       );
-    } catch (error) {
+      setPrescriptions(prescs);
+    } catch {
       toast({
         title: "Error",
-        description: "Failed to load appointments",
+        description: "Failed to load appointments or prescriptions",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [user, isAuthenticated, role, toast]); // Dependencies for useCallback
+  }, [user, isAuthenticated, role, toast]);
 
   useEffect(() => {
-    // Only attempt to load appointments if authenticated, user exists, and is a doctor
-    if (isAuthenticated && user && role === "doctor") {
+    if (isAuthenticated && role === "doctor") {
       loadAppointments();
-    } else if (!isAuthenticated) {
-      // If not authenticated, stop loading and show appropriate message via ProtectedRoute
-      setIsLoading(false);
-    } else if (role !== "doctor") {
-      // If authenticated but not a doctor, stop loading and show appropriate message via ProtectedRoute
+    } else {
       setIsLoading(false);
     }
-  }, [user, isAuthenticated, role, loadAppointments]); // Dependencies for useEffect
+  }, [loadAppointments, isAuthenticated, role]);
 
+  // ---------------- Update Appointment Status ----------------
   const updateAppointmentStatus = async (
-    appointmentId: string,
+    id: string,
     status: Appointment["status"]
   ) => {
     try {
-      await appointmentsAPI.updateStatus(appointmentId, status);
+      await appointmentsAPI.updateStatus(id, status);
       setAppointments((prev) =>
-        prev.map((apt) => (apt.id === appointmentId ? { ...apt, status } : apt))
+        prev.map((apt) => (apt.id === id ? { ...apt, status } : apt))
       );
       toast({
         title: "Success",
         description: `Appointment ${status} successfully!`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to update appointment",
@@ -101,252 +103,266 @@ export default function DoctorAppointmentsPage() {
       });
     }
   };
-  // Function to update an appointment's data in the state
-  const handleAppointmentUpdate = (updatedAppointment: Appointment) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.map((app) =>
-        app.id === updatedAppointment.id ? updatedAppointment : app
-      )
+
+  // ---------------- Helper Functions ----------------
+  const isUpcoming = (a: Appointment) => {
+    if (!a.date || !a.time) return false;
+    const aptDateTime = new Date(`${a.date}T${a.time}`);
+    return aptDateTime >= new Date();
+  };
+
+  const canTakeAction = (apt: Appointment) =>
+    ["pending", "confirmed", "rescheduled"].includes(apt.status) &&
+    (isUpcoming(apt) || apt.status === "rescheduled");
+
+  const groupAppointmentsByDate = (apts: Appointment[]) =>
+    apts.reduce((acc, a) => {
+      (acc[a.date] = acc[a.date] || []).push(a);
+      return acc;
+    }, {} as Record<string, Appointment[]>);
+
+  const filteredAppointments = appointments.filter((a) =>
+    activeTab === "upcoming"
+      ? !["cancelled", "completed"].includes(a.status) && isUpcoming(a)
+      : ["cancelled", "completed"].includes(a.status) || !isUpcoming(a)
+  );
+
+  const groupedAppointments = groupAppointmentsByDate(filteredAppointments);
+
+  const goToPrescription = (apt: Appointment) => {
+    router.push(
+      `/doctor/prescriptions/new?appointmentId=${apt.id}&patientId=${apt.patientId}&doctorId=${apt.doctorId}`
     );
   };
 
-  // FIXED: Replaced with a theme-aware function for better readability in both modes.
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "cancelled":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      case "completed":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
-    }
-  };
-  // Helper function to determine if an appointment is upcoming (for tab filtering)
-  const isUpcoming = (appointment: Appointment) => {
-    const apptDateTime = new Date(`${appointment.date}T${appointment.time}`);
-    return apptDateTime >= new Date();
-  };
+  const getStatusBadgeClass = (status: string) =>
+    ({
+      confirmed:
+        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      pending:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+      cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+      completed:
+        "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      rescheduled:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    }[status] ||
+    "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300");
 
-  const groupAppointmentsByDate = (appointments: Appointment[]) => {
-    const grouped: { [key: string]: Appointment[] } = {};
-    appointments.forEach((appointment) => {
-      const date = appointment.date;
-      if (!grouped[date]) {
-        grouped[date] = [];
-      }
-      grouped[date].push(appointment);
-    });
-    return grouped;
-  };
-
-  // Filter appointments based on the active tab (Upcoming/Past)
-  const filteredAppointments = appointments.filter((appt) => {
-    if (activeTab === "upcoming") {
-      return (
-        isUpcoming(appt) &&
-        appt.status !== "cancelled" &&
-        appt.status !== "completed"
-      );
-    } else {
-      return (
-        !isUpcoming(appt) ||
-        appt.status === "cancelled" ||
-        appt.status === "completed"
-      );
-    }
-  });
-
-  const groupedAppointments = groupAppointmentsByDate(filteredAppointments); // Group filtered appointments
-
+  // ---------------- Render ----------------
   return (
     <ProtectedRoute allowedRoles={["doctor"]}>
-      {/* CHANGED: Added dual-theme background */}
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
+        <Button
+          onClick={() => router.push("/doctor/dashboard")}
+          size="sm"
+          className="m-4"
+        >
+          <StepBack className="w-4 h-4 mr-1" /> Back to Dashboard
+        </Button>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center mb-8">
-            {/* CHANGED: Added dual-theme text colors */}
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Title */}
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               My Appointments
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Manage your patient appointments
+              Manage and track all patient appointments
             </p>
           </div>
-          {/* Section for Tab and View Toggle Buttons */}
-          <div className="flex justify-between items-center mb-6">
-            {/* Tab buttons for Upcoming and Past appointments */}
-            <div className="flex space-x-2 rounded-md bg-muted p-1">
-              <Button
-                variant={activeTab === "upcoming" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("upcoming");
-                  setIsCalendarView(false); // Switch to list view when changing tabs
-                }}
-                className="px-4 py-2 text-sm"
-              >
-                Upcoming
-              </Button>
-              <Button
-                variant={activeTab === "past" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("past");
-                  setIsCalendarView(false); // Switch to list view when changing tabs
-                }}
-                className="px-4 py-2 text-sm"
-              >
-                Past
-              </Button>
-            </div>
 
-            {/* Button to toggle between Calendar and List view */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsCalendarView(!isCalendarView)}
-              aria-label={
-                isCalendarView
-                  ? "Switch to List View"
-                  : "Switch to Calendar View"
-              }
+          {/* Tabs & View Toggle */}
+          <div className="flex justify-between items-center mb-5">
+            <div className="flex rounded-md border border-gray-300 dark:border-gray-700 overflow-hidden">
+              {["upcoming", "past"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab as "upcoming" | "past");
+                    setIsCalendarView(false);
+                  }}
+                  className={`px-4 py-2 text-sm font-medium transition ${
+                    activeTab === tab
+                      ? "bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900"
+                      : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setIsCalendarView((p) => !p)}
+              className="px-3 py-2 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition flex items-center gap-2"
             >
               {isCalendarView ? (
-                <ListOrdered className="h-5 w-5" />
+                <ListOrdered className="w-4 h-4" />
               ) : (
-                <CalendarDays className="h-5 w-5" />
+                <CalendarDays className="w-4 h-4" />
               )}
-            </Button>
+              {isCalendarView ? "List View" : "Calendar View"}
+            </button>
           </div>
 
+          {/* Appointment Content */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Skeleton className="h-[200px] w-full rounded-lg" />
-              <Skeleton className="h-[200px] w-full rounded-lg" />
-              <Skeleton className="h-[200px] w-full rounded-lg" />
+              {Array(3)
+                .fill(0)
+                .map((_, i) => (
+                  <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
+                ))}
             </div>
           ) : appointments.length === 0 ? (
-            <Card className="text-center py-12">
+            <Card className="text-center py-10">
               <CardContent>
-                <Calendar className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                <Calendar className="w-14 h-14 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   No Appointments
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  You don't have any appointments scheduled yet.
+                  You have no scheduled appointments yet.
                 </p>
               </CardContent>
             </Card>
           ) : isCalendarView ? (
             <AppointmentCalendar
               appointments={appointments}
-              onAppointmentUpdate={handleAppointmentUpdate}
+              onAppointmentUpdate={(updated) =>
+                setAppointments((prev) =>
+                  prev.map((a) => (a.id === updated.id ? updated : a))
+                )
+              }
             />
           ) : (
-            // Render the list of appointments, grouped by date (your original structure)
-            <div className="space-y-8">
+            <div className="space-y-6">
               {Object.entries(groupedAppointments).length === 0 ? (
-                <p className="col-span-full text-center text-gray-500 dark:text-gray-400 mt-8">
+                <p className="text-center text-gray-500 dark:text-gray-400">
                   {activeTab === "upcoming"
-                    ? "No upcoming appointments found for this tab."
-                    : "No past appointments found for this tab."}
+                    ? "No upcoming appointments."
+                    : "No past appointments."}
                 </p>
               ) : (
-                Object.entries(groupedAppointments).map(
-                  ([date, dayAppointments]) => (
-                    <div key={date}>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                        {new Date(date).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {dayAppointments.map((appointment) => (
+                Object.entries(groupedAppointments).map(([date, dayApts]) => (
+                  <div key={date}>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                      {new Date(date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {dayApts.map((apt) => {
+                        const prescription = prescriptions.find(
+                          (p) => p.appointmentId === apt.id
+                        );
+
+                        return (
                           <Card
-                            key={appointment.id}
-                            className="hover:shadow-xl transition-shadow"
+                            key={apt.id}
+                            className="hover:shadow-lg transition"
                           >
                             <CardHeader>
-                              <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg flex items-center">
-                                  <User className="w-5 h-5 mr-2" />
-                                  {appointment.patientName}
+                              <div className="flex justify-between items-center">
+                                <CardTitle className="flex flex-col text-base">
+                                  <span className="flex items-center gap-2">
+                                    <User className="w-4 h-4" />{" "}
+                                    {prescription?.patient?.name ||
+                                      apt.patientName}
+                                  </span>
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    Age: {prescription?.patient?.age || "-"}
+                                  </span>
                                 </CardTitle>
                                 <Badge
                                   className={`${getStatusBadgeClass(
-                                    appointment.status
+                                    apt.status
                                   )} capitalize`}
                                 >
-                                  {appointment.status}
+                                  {apt.status}
                                 </Badge>
                               </div>
-                              <CardDescription className="flex items-center pt-1">
-                                <Clock className="w-4 h-4 mr-2" />
-                                {appointment.time}
+                              <CardDescription className="flex items-center gap-1 pt-1">
+                                <Clock className="w-4 h-4" /> {apt.time}
                               </CardDescription>
                             </CardHeader>
                             <CardContent>
-                              <div className="space-y-4">
-                                {appointment.status === "pending" && (
-                                  <div className="flex space-x-2">
-                                    <Button
-                                      size="sm"
-                                      onClick={() =>
-                                        updateAppointmentStatus(
-                                          appointment.id,
-                                          "confirmed"
-                                        )
-                                      }
-                                      className="flex-1"
-                                    >
-                                      <CheckCircle className="w-4 h-4 mr-2" />
-                                      Confirm
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() =>
-                                        updateAppointmentStatus(
-                                          appointment.id,
-                                          "cancelled"
-                                        )
-                                      }
-                                      className="flex-1"
-                                    >
-                                      <XCircle className="w-4 h-4 mr-2" />
-                                      Cancel
-                                    </Button>
-                                  </div>
-                                )}
+                              {/* Medications */}
+                              {prescription?.medications?.length ? (
+                                <ul className="mb-2">
+                                  {prescription.medications.map((m, idx) => (
+                                    <li key={idx} className="text-sm">
+                                      <strong>{m.name}</strong> - {m.dosage} |{" "}
+                                      {m.instructions}{" "}
+                                      {m.duration ? `(${m.duration})` : ""}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  No medications yet.
+                                </p>
+                              )}
 
-                                {appointment.status === "confirmed" && (
+                              {/* Cancel / Complete Buttons */}
+                              {canTakeAction(apt) && (
+                                <div className="flex gap-2 mt-2">
                                   <Button
                                     size="sm"
+                                    variant="outline"
                                     onClick={() =>
                                       updateAppointmentStatus(
-                                        appointment.id,
-                                        "completed"
+                                        apt.id,
+                                        "cancelled"
                                       )
                                     }
+                                    className="flex-1 border border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                                   >
-                                    Mark as Completed
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="flex-1 bg-green-600 text-white hover:bg-green-700"
+                                    onClick={() => goToPrescription(apt)}
+                                  >
+                                    Complete
+                                  </Button>
+                                </div>
+                              )}
+
+                              {/* View / Add Prescription Button */}
+                              {apt.status === "confirmed" &&
+                                !canTakeAction(apt) && (
+                                  <Button
+                                    size="sm"
+                                    className={`w-full mt-2 ${
+                                      prescription
+                                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                        : "bg-purple-600 hover:bg-purple-700 text-white"
+                                    }`}
+                                    onClick={() =>
+                                      prescription
+                                        ? router.push(
+                                            `/doctor/prescriptions/${prescription.id}`
+                                          )
+                                        : goToPrescription(apt)
+                                    }
+                                  >
+                                    {prescription
+                                      ? "View Prescription"
+                                      : "+ Add Prescription"}
                                   </Button>
                                 )}
-                              </div>
                             </CardContent>
                           </Card>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
-                  )
-                )
+                  </div>
+                ))
               )}
             </div>
           )}

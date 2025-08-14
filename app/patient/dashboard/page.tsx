@@ -1,105 +1,130 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useAuth } from "@/contexts/AuthContext"
-import { useRouter } from "next/navigation"
-import { ProtectedRoute } from "@/components/ProtectedRoute"
-import { ModernNavbar } from "@/components/ModernNavbar"
-import { HeroSection } from "@/components/HeroSection"
-import { SpecialtySlider } from "@/components/SpecialtySlider"
-import { TestimonialSection } from "@/components/TestimonialSection"
-import { ModernFooter } from "@/components/ModernFooter"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { doctorsAPI, type Doctor } from "@/lib/api"
-import { Search, MapPin, Star, Calendar } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ModernNavbar } from "@/components/ModernNavbar";
+import HeroSection from "@/components/HeroSection";
+import { SpecialtySlider } from "@/components/SpecialtySlider";
+import { TestimonialSection } from "@/components/TestimonialSection";
+import { ModernFooter } from "@/components/ModernFooter";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { doctorsAPI, type Doctor } from "@/lib/api";
+import { Search, MapPin, Star, Calendar } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PatientDashboard() {
-  const { user } = useAuth()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedSpecialty, setSelectedSpecialty] = useState("all")
-  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Redirect if not a patient
     if (!user) {
-      router.replace("/")
+      router.replace("/");
     } else if (user.role === "doctor") {
-      router.push("/doctor/dashboard")
-      return
+      router.push("/doctor/dashboard");
+      return;
     } else if (user.role === "patient") {
-      loadDoctors()
+      loadDoctors();
+      router.push("/patient/dashboard");
     }
-  }, [user, router])
+  }, [user, router]);
 
   const loadDoctors = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const doctorsData = await doctorsAPI.getAll()
-      setDoctors(doctorsData)
-      setFilteredDoctors(doctorsData)
+      const doctorsData = await doctorsAPI.getAll();
+      setDoctors(doctorsData);
+      setFilteredDoctors(doctorsData);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to load doctors",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSearch = () => {
-    let filtered = doctors
+    let filtered = doctors;
     if (searchTerm) {
       filtered = filtered.filter(
         (doctor) =>
           doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
+          doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
     if (selectedSpecialty !== "all") {
-      filtered = filtered.filter((doctor) => doctor.specialty.toLowerCase() === selectedSpecialty.toLowerCase())
+      filtered = filtered.filter(
+        (doctor) =>
+          doctor.specialty.toLowerCase() === selectedSpecialty.toLowerCase()
+      );
     }
-    setFilteredDoctors(filtered)
-  }
+    setFilteredDoctors(filtered);
+  };
 
   const handleSpecialtySelect = (specialty: string) => {
-    router.push(`/find-doctors?specialty=${specialty}`)
-  }
+    router.push(`/find-doctors?specialty=${specialty}`);
+  };
 
   const bookAppointment = (doctor: Doctor) => {
-    router.push(`/booking/${doctor.id}`)
-  }
+    router.push(`/booking/${doctor.id}`);
+  };
 
   useEffect(() => {
     if (doctors.length > 0) {
-      handleSearch()
+      handleSearch();
     }
-  }, [searchTerm, selectedSpecialty, doctors])
+  }, [searchTerm, selectedSpecialty, doctors]);
 
   return (
     <ProtectedRoute allowedRoles={["patient"]}>
       <div className="bg-white dark:bg-gray-950">
         <ModernNavbar />
         <HeroSection />
-        <SpecialtySlider title="Book Appointment in Clinic" onSpecialtySelect={handleSpecialtySelect} />
+        <SpecialtySlider
+          title="Book Appointment in Clinic"
+          onSpecialtySelect={handleSpecialtySelect}
+        />
         <SpecialtySlider
           title="Consult with Doctors Online"
-          onSpecialtySelect={(specialty) => router.push(`/consultations?specialty=${specialty}`)}
+          onSpecialtySelect={(specialty) =>
+            router.push(`/consultations?specialty=${specialty}`)
+          }
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Find & Book Appointments</h1>
-            <p className="text-gray-700 dark:text-gray-300 text-lg">Connect with qualified doctors in your area</p>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Find & Book Appointments
+            </h1>
+            <p className="text-gray-700 dark:text-gray-300 text-lg">
+              Connect with qualified doctors in your area
+            </p>
           </div>
 
           <Card className="mb-8">
@@ -114,7 +139,10 @@ export default function PatientDashboard() {
                   />
                 </div>
                 <div className="md:w-64">
-                  <Select onValueChange={setSelectedSpecialty} defaultValue="all">
+                  <Select
+                    onValueChange={setSelectedSpecialty}
+                    defaultValue="all"
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="All Specialties" />
                     </SelectTrigger>
@@ -126,7 +154,9 @@ export default function PatientDashboard() {
                       <SelectItem value="orthopedics">Orthopedics</SelectItem>
                       <SelectItem value="pediatrics">Pediatrics</SelectItem>
                       <SelectItem value="psychiatry">Psychiatry</SelectItem>
-                      <SelectItem value="general medicine">General Medicine</SelectItem>
+                      <SelectItem value="general medicine">
+                        General Medicine
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -139,11 +169,16 @@ export default function PatientDashboard() {
           </Card>
 
           {isLoading ? (
-            <div className="text-center text-gray-700 dark:text-white">Loading doctors...</div>
+            <div className="text-center text-gray-700 dark:text-white">
+              Loading doctors...
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredDoctors.map((doctor) => (
-                <Card key={doctor.id} className="hover:shadow-xl transition-shadow">
+                <Card
+                  key={doctor.id}
+                  className="hover:shadow-xl transition-shadow"
+                >
                   <CardHeader>
                     <div className="flex items-center space-x-4">
                       <img
@@ -174,7 +209,10 @@ export default function PatientDashboard() {
                         {doctor.clinicAddress}
                       </div>
                     </div>
-                    <Button className="w-full" onClick={() => bookAppointment(doctor)}>
+                    <Button
+                      className="w-full"
+                      onClick={() => bookAppointment(doctor)}
+                    >
                       Book Appointment
                     </Button>
                   </CardContent>
@@ -185,7 +223,9 @@ export default function PatientDashboard() {
 
           {filteredDoctors.length === 0 && !isLoading && (
             <div className="text-center text-gray-700 dark:text-white py-8">
-              <p className="text-lg">No doctors found matching your criteria.</p>
+              <p className="text-lg">
+                No doctors found matching your criteria.
+              </p>
             </div>
           )}
         </div>
@@ -194,5 +234,5 @@ export default function PatientDashboard() {
         <ModernFooter />
       </div>
     </ProtectedRoute>
-  )
+  );
 }

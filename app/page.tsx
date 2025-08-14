@@ -1,5 +1,3 @@
-
-
 // "use client"
 
 // import { useEffect, useState } from "react"
@@ -41,7 +39,7 @@
 //   useEffect(() => {
 //     // This logic correctly handles routing for non-patients.
 //     if (!user) {
-  
+
 //       router.replace('/')
 //     } else if (user.role === "doctor") {
 //       router.push("/doctor/dashboard")
@@ -229,7 +227,6 @@
 //     </ProtectedRoute>
 //   )
 // }
-
 
 import HeroSection from "@/components/HeroSection";
 

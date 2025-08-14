@@ -308,45 +308,12 @@
       "doctorName": "Dr. Sarah Johnson",
       "patientName": "John Doe",
       "specialty": "Cardiology",
-      "date": "2025-08-12",
-      "time": "09:02",
-      "status": "rescheduled",
+      "date": "2025-08-11",
+      "time": "08:02",
+      "status": "confirmed",
       "consultationType": "video",
       "symptoms": "hshshs",
       "fee": 100
-    },
-    {
-      "id": "1753608241357",
-      "doctorId": "1",
-      "patientId": "1",
-      "doctorName": "Dr. Sarah Johnson",
-      "patientName": "John Doe",
-      "specialty": "Cardiology",
-      "date": "2025-07-27",
-      "time": "10:00",
-      "status": "cancelled"
-    },
-    {
-      "id": "1753608244069",
-      "doctorId": "2",
-      "patientId": "1",
-      "doctorName": "Dr. Michael Chen",
-      "patientName": "John Doe",
-      "specialty": "Dermatology",
-      "date": "2025-07-27",
-      "time": "10:00",
-      "status": "pending"
-    },
-    {
-      "id": "1753608246626",
-      "doctorId": "5",
-      "patientId": "1",
-      "doctorName": "Dr. Lisa Thompson",
-      "patientName": "John Doe",
-      "specialty": "Pediatrics",
-      "date": "2025-07-27",
-      "time": "10:00",
-      "status": "pending"
     },
     {
       "id": "1753608486759",
@@ -355,140 +322,306 @@
       "doctorName": "Dr. Amanda Davis",
       "patientName": "John Doe",
       "specialty": "General Medicine",
-      "date": "2025-07-27",
-      "time": "10:00",
-      "status": "pending"
+      "date": "2025-08-12",
+      "time": "08:04",
+      "status": "rescheduled",
+      "consultationType": "clinic",
+      "symptoms": "Fever, cough",
+      "fee": 90
     },
     {
-      "id": "1753608594110",
-      "doctorId": "1",
-      "patientId": "1",
-      "doctorName": "Dr. Sarah Johnson",
-      "patientName": "John Doe",
-      "specialty": "Cardiology",
-      "date": "2025-07-27",
-      "time": "10:00",
-      "status": "pending"
-    },
-    {
-      "id": "1753608818624",
-      "doctorId": "1",
-      "patientId": "1",
-      "doctorName": "Dr. Sarah Johnson",
-      "patientName": "John Doe",
-      "specialty": "Cardiology",
-      "date": "2025-07-27",
-      "time": "10:00",
-      "status": "cancelled"
-    },
-    {
-      "id": "1753609062114",
-      "doctorId": "1",
-      "patientId": "1",
-      "doctorName": "Dr. Sarah Johnson",
-      "patientName": "John Doe",
-      "specialty": "Cardiology",
-      "date": "2025-07-27",
-      "time": "10:00",
-      "status": "pending"
-    },
-    {
-      "id": "1753969192000",
+      "id": "1755000001001",
       "doctorId": "2",
       "patientId": "1",
       "doctorName": "Dr. Michael Chen",
       "patientName": "John Doe",
       "specialty": "Dermatology",
-      "date": "2025-08-04",
-      "time": "14:00",
-      "status": "confirmed",
+      "date": "2025-08-05",
+      "time": "15:00",
+      "status": "completed",
       "consultationType": "clinic",
-      "symptoms": "",
+      "symptoms": "Skin rash",
       "fee": 120
     },
     {
-      "id": "1753970290676",
-      "doctorId": "1",
+      "id": "1755000001002",
+      "doctorId": "5",
       "patientId": "1",
-      "doctorName": "Dr. Sarah Johnson",
+      "doctorName": "Dr. Lisa Thompson",
       "patientName": "John Doe",
-      "specialty": "Cardiology",
-      "date": "2025-08-12",
-      "time": "07:02",
-      "status": "cancelled",
+      "specialty": "Pediatrics",
+      "date": "2025-08-04",
+      "time": "11:00",
+      "status": "completed",
       "consultationType": "clinic",
-      "symptoms": "",
-      "fee": 150
+      "symptoms": "Cold, cough in child",
+      "fee": 100
     },
     {
-      "id": "1753971379501",
-      "doctorId": "1",
-      "patientId": "1",
-      "doctorName": "Dr. Sarah Johnson",
-      "patientName": "John Doe",
-      "specialty": "Cardiology",
-      "date": "2025-08-10",
-      "time": "12:02",
-      "status": "rescheduled",
-      "consultationType": "clinic",
-      "symptoms": "",
-      "fee": 150
-    },
-    {
-      "id": "1753971844236",
-      "doctorId": "1",
-      "patientId": "1",
-      "doctorName": "Dr. Sarah Johnson",
-      "patientName": "John Doe",
-      "specialty": "Cardiology",
-      "date": "2025-08-08",
-      "time": "16:00",
-      "status": "cancelled",
-      "consultationType": "clinic",
-      "symptoms": "",
-      "fee": 150
-    },
-    {
-      "id": "1753671149792",
+      "id": "1755000001003",
       "doctorId": "4",
       "patientId": "1",
       "doctorName": "Dr. James Wilson",
       "patientName": "John Doe",
       "specialty": "Orthopedics",
-      "date": "2025-07-30",
-      "time": "09:00",
-      "status": "confirmed",
+      "date": "2025-08-03",
+      "time": "09:30",
+      "status": "completed",
       "consultationType": "clinic",
-      "symptoms": "",
+      "symptoms": "Knee pain",
       "fee": 180
     },
     {
-      "id": "1753780484677",
-      "doctorId": "2",
+      "id": "1755169796704",
+      "doctorId": "7",
       "patientId": "1",
-      "doctorName": "Dr. Michael Chen",
+      "doctorName": "Dr. Amanda Davis",
       "patientName": "John Doe",
-      "specialty": "Dermatology",
-      "date": "2025-07-31",
-      "time": "09:00",
-      "status": "confirmed",
+      "specialty": "General Medicine",
+      "date": "2025-08-15",
+      "time": "15:00",
+      "status": "cancelled",
       "consultationType": "clinic",
-      "symptoms": "",
-      "fee": 120
+      "symptoms": "kl;k;m;wm",
+      "fee": 90
     },
     {
-      "id": "1754312327084",
+      "id": "1755177936611",
       "doctorId": "1",
       "patientId": "1",
       "doctorName": "Dr. Sarah Johnson",
       "patientName": "John Doe",
       "specialty": "Cardiology",
-      "date": "2025-08-09",
-      "time": "14:00",
-      "status": "cancelled",
+      "date": "2025-08-20",
+      "time": "15:00",
+      "status": "confirmed",
       "consultationType": "clinic",
       "symptoms": "",
       "fee": 150
+    },
+    {
+      "id": "1755177959975",
+      "doctorId": "7",
+      "patientId": "1",
+      "doctorName": "Dr. Amanda Davis",
+      "patientName": "John Doe",
+      "specialty": "General Medicine",
+      "date": "2025-08-20",
+      "time": "14:00",
+      "status": "confirmed",
+      "consultationType": "clinic",
+      "symptoms": "",
+      "fee": 90
+    }
+  ],
+  "prescriptions": [
+    {
+      "id": "1755008000002",
+      "appointmentId": "1755000001001",
+      "patientId": "1",
+      "doctorId": "2",
+      "patient": {
+        "name": "John Doe",
+        "age": 30
+      },
+      "doctor": {
+        "name": "Dr. Michael Chen",
+        "specialty": "Dermatology"
+      },
+      "medications": [
+        {
+          "name": "Hydrocortisone Cream",
+          "dosage": "Apply twice daily",
+          "instructions": "Avoid sunlight exposure",
+          "duration": "7 days"
+        },
+        {
+          "name": "jjj",
+          "dosage": "870",
+          "instructions": "jkjk",
+          "duration": "kjkj"
+        }
+      ],
+      "notes": "jkhkhkjk",
+      "date": "2025-08-06"
+    },
+    {
+      "id": "1755008000003",
+      "appointmentId": "1755000001002",
+      "patientId": "1",
+      "doctorId": "5",
+      "patient": {
+        "name": "John Doe",
+        "age": 30
+      },
+      "doctor": {
+        "name": "Dr. Lisa Thompson",
+        "specialty": "Pediatrics"
+      },
+      "medications": [
+        {
+          "name": "Cough Syrup",
+          "dosage": "10ml",
+          "instructions": "Give at night before sleep",
+          "duration": "3 days"
+        }
+      ],
+      "notes": "",
+      "date": "2025-08-06"
+    },
+    {
+      "id": "1755008000004",
+      "appointmentId": "1755000001003",
+      "patientId": "1",
+      "doctorId": "4",
+      "patient": {
+        "name": "John Doe",
+        "age": 30
+      },
+      "doctor": {
+        "name": "Dr. James Wilson",
+        "specialty": "Orthopedics"
+      },
+      "medications": [
+        {
+          "name": "Ibuprofen",
+          "dosage": "400mg",
+          "instructions": "Take with food for knee pain",
+          "duration": "7 days"
+        }
+      ],
+      "notes": "",
+      "date": "2025-08-06"
+    },
+    {
+      "id": "1754492046529",
+      "appointmentId": "",
+      "doctorId": "",
+      "patientId": "",
+      "patient": {
+        "name": "Unknown",
+        "age": 0
+      },
+      "doctor": {
+        "name": "Unknown",
+        "specialty": "N/A"
+      },
+      "medications": [
+        {
+          "name": "Paracetamol",
+          "dosage": "500",
+          "instructions": "iiqhislhjlw",
+          "duration": "3 days"
+        }
+      ],
+      "notes": "",
+      "date": "2025-08-06"
+    },
+    {
+      "id": "1755016042551",
+      "appointmentId": "1753449750705",
+      "doctorId": "1",
+      "patientId": "1",
+      "patient": {
+        "name": "John Doe",
+        "age": 30
+      },
+      "doctor": {
+        "name": "Dr. Sarah Johnson",
+        "specialty": "Cardiology"
+      },
+      "medications": [
+        {
+          "name": "Paracetamol",
+          "dosage": "600",
+          "instructions": ";kikijiipjo;",
+          "duration": "7 days"
+        }
+      ],
+      "notes": ".mndwpkw",
+      "date": "2025-08-12"
+    },
+    {
+      "id": "1755166390430",
+      "appointmentId": "1753608486759",
+      "doctorId": "7",
+      "patientId": "1",
+      "medications": [
+        {
+          "name": "lll",
+          "dosage": "knkknk",
+          "instructions": "kkknknk",
+          "duration": "knnn"
+        },
+        {
+          "name": "llnk",
+          "dosage": "jk",
+          "instructions": "kkl",
+          "duration": "kkj"
+        }
+      ],
+      "notes": "kkkhkhiguhvuyjhkb",
+      "date": "2025-08-14"
+    },
+    {
+      "id": "1755169849709",
+      "appointmentId": "1755169796704",
+      "doctorId": "7",
+      "patientId": "1",
+      "medications": [
+        {
+          "name": "random",
+          "dosage": "1000",
+          "instructions": "take in morning and evening",
+          "duration": ";kped"
+        },
+        {
+          "name": "random2",
+          "dosage": "600",
+          "instructions": "take in morning and evening",
+          "duration": "knnn"
+        }
+      ],
+      "notes": ",nklhkihkhkh",
+      "date": "2025-08-14"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "1",
+      "appointmentId": "1755000001001",
+      "doctorId": "2",
+      "patientId": "1",
+      "rating": 5,
+      "reviewText": "Doctor was very helpful and professional.",
+      "date": "2025-08-12"
+    },
+    {
+      "id": "1755168614772",
+      "appointmentId": "1755000001001",
+      "doctorId": "2",
+      "patientId": "1",
+      "rating": 5,
+      "reviewText": "kklwewkjekejk",
+      "date": "2025-08-14"
+    },
+    {
+      "id": "1755168766372",
+      "appointmentId": "1755000001001",
+      "doctorId": "2",
+      "patientId": "1",
+      "rating": 5,
+      "reviewText": ".mnqjw",
+      "date": "2025-08-14"
+    },
+    {
+      "id": "1755177876673",
+      "appointmentId": "1755000001002",
+      "doctorId": "5",
+      "patientId": "1",
+      "rating": 3,
+      "reviewText": "very good doctor",
+      "date": "2025-08-14"
     }
   ]
 }

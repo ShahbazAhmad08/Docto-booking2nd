@@ -272,3 +272,18 @@
   text-transform: capitalize;
   font-weight: 700;
 }
+
+
+.fc-event,
+.fc-daygrid-event,
+.fc-timegrid-event {
+  overflow: visible !important;
+  z-index: 9999 !important;
+}
+
+.fc {
+  overflow: visible !important;
+}
+.fc-view-harness {
+  overflow: visible !important;
+}

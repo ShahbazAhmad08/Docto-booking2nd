@@ -13,15 +13,29 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { appointmentsAPI, type Appointment } from "@/lib/api";
-import { Calendar, Clock, User, Stethoscope } from "lucide-react"; // Calendar icon for no appointments state
+import {
+  appointmentsAPI,
+  reviewsAPI,
+  type Appointment,
+  type Review,
+} from "@/lib/api";
+import { Calendar, Clock, User, Stethoscope } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { AppointmentActions } from "@/components/AppointmentActions";
-import { useRouter } from "next/navigation"; // NEW: For the "Find a Doctor" button
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // NEW: For filtering tabs
+import { useRouter } from "next/navigation";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Define possible filter types
+// NEW: Import SubmitReview component
+import SubmitReview from "@/components/SubmitReview";
+
+// NEW: Modal state type
+interface ReviewModalState {
+  open: boolean;
+  appointment?: Appointment;
+  existingReview?: Review;
+}
+
 type AppointmentStatusFilter =
   | "all"
   | "pending"
@@ -32,31 +46,42 @@ type AppointmentStatusFilter =
 export default function AppointmentsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null); // State for API errors
-  // State for the selected filter
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<AppointmentStatusFilter>("all");
 
+  // NEW: State for review modal
+  const [reviewModal, setReviewModal] = useState<ReviewModalState>({
+    open: false,
+  });
+
   const loadAppointments = async () => {
-    if (!user?.id) {
-      // Use optional chaining for safety
-      // If user is not logged in, set error and stop loading
+    if (!user?.id || !user?.role) {
       setError("User not logged in. Please log in to view appointments.");
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
-    setError(null); // Clear previous errors
+    setError(null);
     try {
-      const appointmentsData = await appointmentsAPI.getByPatientId(user.id);
+      const appointmentsData = await appointmentsAPI.getByUser(
+        user.id,
+        user.role
+      );
       setAppointments(
         appointmentsData.sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         )
       );
+
+      if (user.role === "patient") {
+        const reviewsData = await reviewsAPI.getByPatientId(user.id);
+        setReviews(reviewsData);
+      }
     } catch (err) {
       console.error("Failed to load appointments:", err);
       setError("Failed to load appointments. Please try again.");
@@ -71,21 +96,14 @@ export default function AppointmentsPage() {
   };
 
   useEffect(() => {
-    // Only load appointments if user is available
-    if (user) {
-      loadAppointments();
-    }
-  }, [user]); // Depend on user object for re-fetching
+    if (user) loadAppointments();
+  }, [user]);
 
-  // Function to filter appointments based on selected status
   const filteredAppointments = appointments.filter((appointment) => {
-    if (filter === "all") {
-      return true; // Show all appointments
-    }
+    if (filter === "all") return true;
     return appointment.status === filter;
   });
 
-  // FIXED: Replaced with a theme-aware function for better readability in both modes.
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -101,6 +119,11 @@ export default function AppointmentsPage() {
     }
   };
 
+  // Helper: Find existing review for an appointment
+  const getExistingReview = (appointmentId: string) => {
+    return reviews.find((r) => r.appointmentId === appointmentId);
+  };
+
   return (
     <ProtectedRoute allowedRoles={["patient"]}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -108,17 +131,14 @@ export default function AppointmentsPage() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
-            {/* KEPT SAME: My Appointments heading */}
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               My Appointments
             </h1>
-            {/* KEPT SAME: Description below heading */}
             <p className="text-gray-600 dark:text-gray-300">
               View and manage your upcoming and past appointments
             </p>
           </div>
 
-          {/* NEW: Filter Tabs */}
           <div className="mb-6">
             <Tabs
               value={filter}
@@ -147,7 +167,7 @@ export default function AppointmentsPage() {
             </Tabs>
           </div>
 
-          {error && ( // Display API loading errors
+          {error && (
             <div className="text-center text-red-500 dark:text-red-400 mb-4">
               {error}
             </div>
@@ -157,7 +177,7 @@ export default function AppointmentsPage() {
             <div className="text-center text-gray-500 dark:text-white py-12">
               Loading appointments...
             </div>
-          ) : filteredAppointments.length === 0 ? ( // Use filteredAppointments length
+          ) : filteredAppointments.length === 0 ? (
             <Card className="text-center py-12 flex flex-col items-center justify-center space-y-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
               <CardContent className="flex flex-col items-center justify-center p-6">
                 <Calendar className="w-20 h-20 text-blue-500 dark:text-blue-400 mb-4" />
@@ -171,7 +191,7 @@ export default function AppointmentsPage() {
                     ? "It looks like you haven't booked any appointments. Start by finding a doctor that fits your needs."
                     : `There are no appointments with "${filter}" status.`}
                 </p>
-                {filter === "all" && ( // Only show "Find a Doctor" if no appointments at all and "All" filter is active
+                {filter === "all" && (
                   <Button
                     onClick={() => router.push("/find-doctors")}
                     className="mt-4 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-700 dark:hover:bg-blue-800"
@@ -179,7 +199,7 @@ export default function AppointmentsPage() {
                     Find a Doctor
                   </Button>
                 )}
-                {filter !== "all" && ( // Show "Show All Appointments" if a filter is active
+                {filter !== "all" && (
                   <Button
                     onClick={() => setFilter("all")}
                     variant="outline"
@@ -192,10 +212,9 @@ export default function AppointmentsPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAppointments.map(
-                (
-                  appointment // Map over filteredAppointments
-                ) => (
+              {filteredAppointments.map((appointment) => {
+                const existingReview = getExistingReview(appointment.id);
+                return (
                   <Card
                     key={appointment.id}
                     className="hover:shadow-xl transition-shadow"
@@ -239,20 +258,62 @@ export default function AppointmentsPage() {
                         </div>
                       </div>
                     </CardContent>
-                    <div className="px-6 pb-4">
+                    <div className="px-6 pb-4 flex flex-col space-y-2">
                       <AppointmentActions
                         appointmentId={appointment.id}
                         status={appointment.status}
                         doctorId={appointment.doctorId}
                         onAppointmentAction={loadAppointments}
                       />
+
+                      {/* NEW: Submit/Edit Review Button */}
+                      {appointment.status === "completed" && (
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            setReviewModal({
+                              open: true,
+                              appointment,
+                              existingReview,
+                            })
+                          }
+                        >
+                          {existingReview ? "Edit Review" : "Submit Review"}
+                        </Button>
+                      )}
                     </div>
                   </Card>
-                )
-              )}
+                );
+              })}
+            </div>
+          )}
+
+          {/* NEW: Modal for SubmitReview */}
+          {reviewModal.open && reviewModal.appointment && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-6 relative">
+                <button
+                  onClick={() => setReviewModal({ open: false })}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white"
+                >
+                  ✕
+                </button>
+                <SubmitReview
+                  appointmentId={reviewModal.appointment.id}
+                  doctorId={reviewModal.appointment.doctorId}
+                  patientId={user!.id}
+                  onSuccess={() => {
+                    setReviewModal({ open: false });
+                    loadAppointments(); // Refresh appointments and reviews
+                  }}
+                  // NEW: Pass existing review for editing
+                  existingReview={reviewModal.existingReview}
+                />
+              </div>
             </div>
           )}
         </div>
+
         <ModernFooter />
       </div>
     </ProtectedRoute>

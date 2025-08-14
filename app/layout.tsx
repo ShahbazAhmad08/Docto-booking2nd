@@ -21,9 +21,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning> {/* ✅ Required for theme to hydrate properly */}
-      <body className={`${inter.className} bg-white text-black dark:bg-gray-900 dark:text-white`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem> {/* ✅ Wrap in ThemeProvider */}
+    <html lang="en" suppressHydrationWarning>
+      {" "}
+      {/* ✅ Required for theme to hydrate properly */}
+      <body
+        className={`${inter.className} bg-white text-black dark:bg-gray-900 dark:text-white`}
+      >
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          {" "}
+          {/* ✅ Wrap in ThemeProvider */}
           <AuthProvider>
             {children}
             <Toaster />
